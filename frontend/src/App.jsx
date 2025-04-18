@@ -25,9 +25,3 @@ function App() {
 }
 
 export default App
-
-
-flask
-pandas
-scikit-learn
-joblib
