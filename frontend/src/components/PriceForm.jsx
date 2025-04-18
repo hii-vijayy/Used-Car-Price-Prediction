@@ -30,7 +30,9 @@ const PriceForm = ({ onPredictionResult }) => {
 
     try {
       // Fixed API endpoint to match the Flask backend
-      const response = await fetch("http://localhost:5001/predict", {
+      const apiUrl = import.meta.env.VITE_API_URL;
+
+      const response = await fetch(`${apiUrl}/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
