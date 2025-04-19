@@ -1,20 +1,23 @@
-# Use a lightweight Python base image
 FROM python:3.11-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="$JAVA_HOME/bin:$PATH"
 
-# Install Java 17 (instead of 11)
+# Install Java 17 and other required packages
 RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk && \
+    apt-get install -y default-jdk procps && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Update JAVA_HOME path
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+# Set JAVA_HOME properly using the update-alternatives system
+RUN JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/bin/java::") && \
+    echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile && \
+    echo "JAVA_HOME=$JAVA_HOME" >> /etc/environment
+
+# Load JAVA_HOME from the environment file
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 
 # Set working directory
@@ -34,4 +37,4 @@ COPY . /app/
 EXPOSE 5001
 
 # Run the Flask app using Gunicorn (adjust according to your app structure)
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "backend.app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5001","--timeout", "120", "--workers", "1", "backend.app:app"]
