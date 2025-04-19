@@ -1,6 +1,10 @@
+Flask==2.2.3
+Flask-Cors==3.0.10
+pyspark==3.4.0
 findspark==2.0.1
-flask==3.0.2
-flask-cors==4.0.0
-pyspark==3.5.0
-gunicorn==21.2.0
-numpy
+pandas==1.5.3
+numpy==1.24.3
+scikit-learn==1.2.2
+gunicorn==20.1.0
+Werkzeug==2.2.3
+py4j==0.10.9.7
