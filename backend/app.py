@@ -22,8 +22,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
 
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 # Create a temp directory with proper permissions
 temp_dir = tempfile.mkdtemp()
 os.environ['SPARK_LOCAL_DIRS'] = temp_dir
@@ -80,6 +81,11 @@ def health_check():
         "spark_status": "active" if spark else "inactive",
         "model_loaded": bool(ml_model)
     })
+
+@app.route('/predict', methods=['OPTIONS'])
+def options_predict():
+    return '', 204
+
 
 @app.route('/predict', methods=['POST'])
 def predict_price():
