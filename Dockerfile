@@ -7,15 +7,14 @@ ENV PYTHONUNBUFFERED=1
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
-# Install Java 11 (required by PySpark)
+# Install Java 17 (instead of 11)
 RUN apt-get update && \
-    apt-get install -y openjdk-11-jdk && \
+    apt-get install -y openjdk-17-jdk && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Set JAVA_HOME properly
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="$JAVA_HOME/bin:$PATH"
+# Update JAVA_HOME path
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
 
 # Set working directory
