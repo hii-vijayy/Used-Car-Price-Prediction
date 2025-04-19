@@ -22,9 +22,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# CORS(app)
 
+# Enable CORS
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
 # Create a temp directory with proper permissions
 temp_dir = tempfile.mkdtemp()
 os.environ['SPARK_LOCAL_DIRS'] = temp_dir
@@ -42,8 +43,8 @@ PREDICTION_SCHEMA = StructType([
 def initialize_spark():
     """Initialize and configure Spark session with production settings."""
     logger.info("Initializing Spark Session...")
-    
-    return SparkSession.builder \
+
+    spark = SparkSession.builder \
         .appName("CarPriceAPI") \
         .config("spark.driver.memory", os.getenv("DRIVER_MEMORY", "2g")) \
         .config("spark.executor.memory", os.getenv("EXECUTOR_MEMORY", "2g")) \
@@ -55,6 +56,10 @@ def initialize_spark():
         .master("local[1]") \
         .getOrCreate()
 
+    logger.info(f"Spark version: {spark.version}")
+    logger.info(f"Spark app name: {spark.sparkContext.appName}")
+    return spark
+
 # Initialize Spark
 spark = initialize_spark()
 
@@ -62,16 +67,19 @@ spark = initialize_spark()
 def load_model():
     """Load the trained PySpark ML model."""
     logger.info("Loading ML model...")
-    model_path = os.getenv("MODEL_PATH", "./saved_model")
+
+    # Fix path: default is now backend/saved_model
+    model_path = os.getenv("MODEL_PATH", "backend/saved_model")
+
     try:
-        pipeline_model = PipelineModel.load(model_path)  # renamed from `model`
+        pipeline_model = PipelineModel.load(model_path)
         logger.info("Model loaded successfully")
         return pipeline_model
     except Exception as load_error:
         logger.error("Model loading failed: %s", str(load_error))
         raise RuntimeError("Model initialization failed") from load_error
 
-ml_model = load_model()  # renamed from `model`
+ml_model = load_model()
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -84,27 +92,16 @@ def health_check():
 
 @app.route('/predict', methods=['OPTIONS'])
 def options_predict():
+    """Handle CORS preflight."""
     return '', 204
-
 
 @app.route('/predict', methods=['POST'])
 def predict_price():
-    """Main prediction endpoint
-    
-    Expects JSON payload with car features:
-    {
-        "brand": "Toyota",
-        "model": "Corolla",
-        "year": 2018,
-        "fuel": "Petrol",
-        "transmission": "Manual",
-        "kms_driven": 45000
-    }
-    """
+    """Main prediction endpoint"""
     try:
         data = request.json
         logger.info("Received prediction request: %s", data)
-        
+
         # Validate input data
         required_fields = ['brand', 'model', 'year', 'fuel', 'transmission', 'kms_driven']
         if not all(field in data for field in required_fields):
@@ -128,17 +125,17 @@ def predict_price():
         return jsonify({
             "price": round(float(prediction), 2),
             "currency": "INR",
-            "confidence": 0.95  # Example value
+            "confidence": 0.95  # placeholder value
         })
-    
+
     except ValueError as ve:
         logger.error("Validation error: %s", ve)
         return jsonify({"error": str(ve)}), 400
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:
         logger.error("Prediction failed: %s", e)
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", "5001"))  # default value as string
+    port = int(os.getenv("PORT", "5001"))
     logger.info("Starting application on port %d", port)
     app.run(host='0.0.0.0', port=port)
