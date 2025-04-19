@@ -24,7 +24,7 @@ app = Flask(__name__)
 
 # More specific CORS configuration
 CORS(app, 
-     resources={r"/*": {"origins": "*"}},
+     resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:5001", "https://your-frontend-domain.com"]}},
      supports_credentials=True,
      methods=["GET", "POST", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization"],
