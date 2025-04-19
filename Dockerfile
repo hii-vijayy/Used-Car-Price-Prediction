@@ -1,27 +1,30 @@
-# Use official Python image
+# Use a lightweight Python base image
 FROM python:3.11-slim
 
-# Install Java (required for PySpark)
-RUN apt-get update && \
-    apt-get install -y openjdk-11-jdk && \
-    apt-get clean
-
-# Set environment variables for Java
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH=$JAVA_HOME/bin:$PATH
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
-# Set the working directory inside the container
+# Install required system packages
+RUN apt-get update && \
+    apt-get install -y default-jdk curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set working directory
 WORKDIR /app
 
-# Copy backend files into the container
-COPY ./backend /app
+# Copy project files
+COPY . /app
 
 # Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Expose port 5000
+# Expose the Flask port
 EXPOSE 5000
 
-# Run the app using gunicorn
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5001"]
+# Run the application
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
