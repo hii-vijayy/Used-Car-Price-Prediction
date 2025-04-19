@@ -1,21 +1,15 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.11-bullseye
 
-# Install system dependencies
+# Install Java using apt (safer than manual download)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    openjdk-11-jdk \
-    procps \
-    curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends openjdk-11-jdk-headless && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set Java home
+# Set environment variables
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-ENV SPARK_HOME=/usr/local/lib/python3.11/site-packages/pyspark
-ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9.7-src.zip"
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
-# Configure Python
+# Python env setup
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
@@ -27,10 +21,10 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy app
 COPY . .
 
-# Spark memory configuration
+# Spark config
 ENV SPARK_DRIVER_MEMORY=2g
 ENV SPARK_EXECUTOR_MEMORY=2g
 ENV SPARK_LOCAL_DIRS=/tmp/spark
