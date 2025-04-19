@@ -9,64 +9,61 @@ from pyspark.ml.evaluation import RegressionEvaluator
 # Initialize Spark session
 spark = SparkSession.builder.appName("CarPricePrediction").getOrCreate()
 
-# Sample DataFrame creation (Replace this with loading your actual dataset)
+# Step 0: Load actual dataset here instead of hardcoded dummy data
+# Example: df = spark.read.csv("your_data.csv", header=True, inferSchema=True)
 data = [
     ("Toyota", "Corolla", 2018, "Petrol", "Manual", 50000, 20000),
     ("Honda", "Civic", 2019, "Diesel", "Automatic", 30000, 25000),
     ("Ford", "Focus", 2017, "Petrol", "Manual", 60000, 18000),
     ("BMW", "3 Series", 2020, "Petrol", "Automatic", 20000, 30000),
     ("Audi", "A4", 2021, "Diesel", "Automatic", 15000, 35000),
-    # Add more rows as needed
 ]
 
-columns = ["Brand", "Model", "Year", "Fuel", "Transmission", "kmDriven", "Price"]
-
+columns = ["brand", "model", "year", "fuel", "transmission", "kms_driven", "price"]
 df = spark.createDataFrame(data, columns)
 
-# Step 1: Handle null values (remove rows with nulls in selected columns)
-df_cleaned = df.dropna(subset=['Brand', 'Model', 'Year', 'Fuel', 'Transmission', 'kmDriven'])
+# Step 1: Drop nulls
+df_cleaned = df.dropna(subset=["brand", "model", "year", "fuel", "transmission", "kms_driven", "price"])
 
-# Step 2: StringIndexer for categorical columns (Brand, Model, Fuel, Transmission)
-brand_indexer = StringIndexer(inputCol="Brand", outputCol="Brand_indexed")
-model_indexer = StringIndexer(inputCol="Model", outputCol="model_indexed")
-fuel_indexer = StringIndexer(inputCol="Fuel", outputCol="Fuel_indexed")
-transmission_indexer = StringIndexer(inputCol="Transmission", outputCol="Transmission_indexed")
+# Step 2: Index categorical columns
+brand_indexer = StringIndexer(inputCol="brand", outputCol="brand_indexed")
+model_indexer = StringIndexer(inputCol="model", outputCol="model_indexed")
+fuel_indexer = StringIndexer(inputCol="fuel", outputCol="fuel_indexed")
+transmission_indexer = StringIndexer(inputCol="transmission", outputCol="transmission_indexed")
 
-# Step 3: Assemble features into a single vector using VectorAssembler
+# Step 3: Assemble features
 assembler = VectorAssembler(
-    inputCols=['Brand_indexed', 'model_indexed', 'Year', 'Fuel_indexed', 'Transmission_indexed', 'kmDriven'],
-    outputCol='features'
+    inputCols=["brand_indexed", "model_indexed", "year", "fuel_indexed", "transmission_indexed", "kms_driven"],
+    outputCol="features"
 )
 
-# Step 4: Define the regression model (Random Forest in this case)
-rf = RandomForestRegressor(featuresCol='features', labelCol='Price')
+# Step 4: Define regressor
+rf = RandomForestRegressor(featuresCol="features", labelCol="price")
 
-# Step 5: Set up the pipeline
-pipeline = Pipeline(stages=[brand_indexer, model_indexer, fuel_indexer, transmission_indexer, assembler, rf])
+# Step 5: Build pipeline
+pipeline = Pipeline(stages=[
+    brand_indexer, model_indexer, fuel_indexer, transmission_indexer,
+    assembler, rf
+])
 
-# Step 6: Fit the pipeline model
+# Step 6: Train model
 model = pipeline.fit(df_cleaned)
 
-# Step 7: Make predictions on the data
+# Step 7: Predict and evaluate
 predictions = model.transform(df_cleaned)
-
-# Step 8: Evaluate the model (using RegressionEvaluator)
-evaluator = RegressionEvaluator(labelCol="Price", predictionCol="prediction", metricName="rmse")
-rmse = evaluator.evaluate(predictions)
-
-# Step 9: Show some predictions and the RMSE result
-predictions.select("Brand", "Model", "Year", "kmDriven", "Price", "prediction").show()
-
+rmse = RegressionEvaluator(labelCol="price", predictionCol="prediction", metricName="rmse").evaluate(predictions)
 print(f"Root Mean Squared Error (RMSE): {rmse}")
 
-# Save the trained model
-script_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(script_dir, "saved_model")
+# Optional: Show predictions
+predictions.select("brand", "model", "year", "kms_driven", "price", "prediction").show()
 
-# Remove the existing model directory if it exists
+# Step 8: Save the model
+model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "saved_model")
 if os.path.exists(model_path):
     shutil.rmtree(model_path)
 
-# Save the model with overwrite
 model.write().overwrite().save(model_path)
 print(f"Model has been saved to: {model_path}")
+
+# Optional: Stop Spark session
+spark.stop()
