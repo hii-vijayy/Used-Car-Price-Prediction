@@ -1,15 +1,13 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "api/predictor.py",
-        "use": "@vercel/python"
+    "functions": {
+      "api/predictor.py": {
+        "runtime": "python3.9"
       }
-    ],
+    },
     "routes": [
       {
-        "src": "/predict",
-        "dest": "api/predictor.py"
+        "src": "/api/predict",
+        "dest": "/api/predictor.py"
       }
     ]
   }

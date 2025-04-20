@@ -5,3 +5,5 @@ onnxruntime
 pydantic
 scikit-learn
 uvicorn
+pandas
+joblip
