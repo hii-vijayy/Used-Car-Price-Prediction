@@ -60,9 +60,9 @@ const PriceDisplay = ({ result }) => {
     <div className="price-display">
       <div className="price-header">
         <h2 className="price-title">Estimated Value</h2>
-        <div className="price-value">${prediction.toLocaleString()}</div>
+        <div className="price-value">₹{prediction.toLocaleString()}</div>
         <div className="price-range">
-          Market range: ${lowerRange.toLocaleString()} - ${upperRange.toLocaleString()}
+          Market range: ₹{lowerRange.toLocaleString()} - ₹{upperRange.toLocaleString()}
         </div>
       </div>
 
@@ -134,7 +134,7 @@ const PriceDisplay = ({ result }) => {
             <div className="similar-car-details">
               {input.transmission}, {Math.round(input.kms_driven * 0.9).toLocaleString()} km
             </div>
-            <div className="similar-car-price">${Math.round(prediction * 0.95).toLocaleString()}</div>
+            <div className="similar-car-price">₹{Math.round(prediction * 0.95).toLocaleString()}</div>
           </div>
           <div className="similar-car-card">
             <div className="similar-car-year">{input.year}</div>
@@ -144,7 +144,7 @@ const PriceDisplay = ({ result }) => {
             <div className="similar-car-details">
               {input.transmission}, {Math.round(input.kms_driven * 1.1).toLocaleString()} km
             </div>
-            <div className="similar-car-price">${Math.round(prediction * 0.92).toLocaleString()}</div>
+            <div className="similar-car-price">₹{Math.round(prediction * 0.92).toLocaleString()}</div>
           </div>
           <div className="similar-car-card">
             <div className="similar-car-year">{input.year - 1}</div>
@@ -154,7 +154,7 @@ const PriceDisplay = ({ result }) => {
             <div className="similar-car-details">
               {input.transmission}, {Math.round(input.kms_driven * 1.2).toLocaleString()} km
             </div>
-            <div className="similar-car-price">${Math.round(prediction * 0.85).toLocaleString()}</div>
+            <div className="similar-car-price">₹{Math.round(prediction * 0.85).toLocaleString()}</div>
           </div>
         </div>
       </div>

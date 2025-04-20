@@ -23,103 +23,45 @@ const PriceForm = ({ onPredictionResult }) => {
     })
   }
 
-  const validateForm = () => {
-    // Basic form validation
-    if (!formData.brand || !formData.model || !formData.fuel || !formData.transmission) {
-      return false
-    }
-    
-    if (!formData.year || formData.year < 1990 || formData.year > new Date().getFullYear()) {
-      return false
-    }
-    
-    if (formData.kms_driven < 0 || formData.kms_driven > 1000000) {
-      return false
-    }
-    
-    return true
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Validate form before submission
-    if (!validateForm()) {
-      setError("Please fill all fields with valid values")
-      return
-    }
-    
     setLoading(true)
     setError(null)
 
     try {
-      // Get API URL from environment variables
-      const apiUrl = import.meta.env.VITE_API_URL
-
-      // First check API health if possible
-      try {
-        const healthCheck = await fetch(`${apiUrl}/health`, {
-          method: "GET",
-          signal: AbortSignal.timeout(5000) // 5 second timeout for health check
-        })
-        
-        if (!healthCheck.ok) {
-          console.warn("API health check failed, but continuing with prediction attempt")
-        } else {
-          const healthData = await healthCheck.json()
-          console.log("API health status:", healthData)
-        }
-      } catch (healthError) {
-        console.warn("Health check failed:", healthError)
-        // Continue anyway - health check failure shouldn't block prediction attempt
-      }
-
-      // Prepare the request with timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
-
-      const response = await fetch(`${apiUrl}/predict`, {
+      // Connect to the FastAPI backend
+      const response = await fetch("http://localhost:5001/predict", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
-        signal: controller.signal
+        body: JSON.stringify({
+          Brand: formData.brand,
+          model: formData.model,
+          Year: formData.year,
+          kmDriven: formData.kms_driven,
+          Transmission: formData.transmission,
+          Owner: "First Owner", // Default value since it's required by the API
+          FuelType: formData.fuel,
+        }),
       })
-      
-      clearTimeout(timeoutId) // Clear timeout if request completes
 
-      // Handle non-200 responses with better error reporting
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: `HTTP error! Status: ${response.status}` }))
-        throw new Error(errorData.error || `Server returned: ${response.status}`)
+        throw new Error(`HTTP error! Status: ${response.status}`)
       }
 
       const data = await response.json()
-      
-      // Check if the API returned an error status
-      if (data.status === "error") {
-        throw new Error(data.error || "Unknown prediction error")
-      }
 
       // Create a result object that includes both the prediction and input data
       const result = {
-        prediction: data.price,
+        prediction: data.predicted_price_in_inr,
         input: formData,
-        currency: data.currency || "INR"
+        currency: "INR",
       }
 
-      // Pass result to parent component
       onPredictionResult(result)
     } catch (err) {
-      // Handle different error types
-      if (err.name === "AbortError") {
-        setError("Request timed out. The server might be busy, please try again.")
-      } else if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
-        setError("Network error. Please check your connection and try again.")
-      } else {
-        setError(`Failed to get prediction: ${err.message}`)
-      }
+      setError("Failed to get prediction. Please try again.")
       console.error("Prediction error:", err)
     } finally {
       setLoading(false)

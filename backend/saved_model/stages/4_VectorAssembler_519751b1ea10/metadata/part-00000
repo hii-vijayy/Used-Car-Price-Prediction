@@ -1,1 +1,0 @@
-{"class":"org.apache.spark.ml.feature.VectorAssembler","timestamp":1745085448122,"sparkVersion":"3.5.5","uid":"VectorAssembler_519751b1ea10","paramMap":{"outputCol":"features","inputCols":["brand_indexed","model_indexed","year","fuel_indexed","transmission_indexed","kms_driven"]},"defaultParamMap":{"handleInvalid":"error","outputCol":"VectorAssembler_519751b1ea10__output"}}

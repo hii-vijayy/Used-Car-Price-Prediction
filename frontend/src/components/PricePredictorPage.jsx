@@ -12,7 +12,7 @@ const PricePredictorPage = () => {
       <div className="predictor-header">
         <h1 className="predictor-title">Used Car Price Estimator</h1>
         <p className="predictor-description">
-          Get an accurate market value for your used car based on ML-powered analysis
+          Get an accurate market value for your used car based on our trained Linear Regression model
         </p>
       </div>
 
