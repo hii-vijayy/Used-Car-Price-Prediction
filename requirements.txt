@@ -4,5 +4,4 @@ numpy
 onnxruntime
 pydantic
 scikit-learn
-pandas
-joblib
+uvicorn 
