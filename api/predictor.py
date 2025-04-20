@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from mangum import Mangum
-import joblib
-import pandas as pd
+import onnxruntime as ort
+import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 
-# Load the trained model pipeline (includes all preprocessing)
-model = joblib.load("model/saved_model/sklearn_model.joblib")
+# Load the ONNX model
+session = ort.InferenceSession("model/model.onnx")
+input_names = [input.name for input in session.get_inputs()]
+output_names = [output.name for output in session.get_outputs()]
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # You can set this to your frontend URL for better security
@@ -29,24 +32,34 @@ class CarFeatures(BaseModel):
 
 @app.post("/predict")
 def predict_price(car: CarFeatures):
-    # Create input DataFrame with same structure as training data
-    input_data = pd.DataFrame([{
-        "Brand": car.Brand,
-        "model": car.model,
-        "Year": car.Year,
-        "kmDriven": car.kmDriven,
-        "Transmission": car.Transmission,
-        "Owner": car.Owner,
-        "FuelType": car.FuelType
-    }])
+    # Calculate Age (same as in training)
+    Age = 2025 - car.Year
     
-    # Calculate Age (same as training)
-    input_data['Age'] = 2025 - input_data['Year']
+    # Prepare input data in the format expected by ONNX
+    input_dict = {
+        'Brand': np.array([car.Brand]).reshape(-1, 1),
+        'model': np.array([car.model]).reshape(-1, 1),
+        'Year': np.array([car.Year], dtype=np.float32).reshape(-1, 1),
+        'Age': np.array([Age], dtype=np.float32).reshape(-1, 1),
+        'kmDriven': np.array([car.kmDriven], dtype=np.float32).reshape(-1, 1),
+        'Transmission': np.array([car.Transmission]).reshape(-1, 1),
+        'Owner': np.array([car.Owner]).reshape(-1, 1),
+        'FuelType': np.array([car.FuelType]).reshape(-1, 1)
+    }
     
-    # Let the model pipeline handle all preprocessing
-    predicted_price = model.predict(input_data)[0]
+    # Filter to only include required inputs based on the model
+    filtered_input = {name: input_dict[name] for name in input_dict if name in input_names}
+    
+    # Make prediction
+    prediction = session.run(output_names, filtered_input)
+    predicted_price = float(prediction[0][0])
     
     return {"predicted_price_in_inr": round(predicted_price, 2)}
 
 # AWS Lambda handler
 handler = Mangum(app)
+
+# For local testing
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

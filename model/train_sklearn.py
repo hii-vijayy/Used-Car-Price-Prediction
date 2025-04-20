@@ -8,7 +8,11 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import os
 import re
-import joblib
+
+# Import ONNX conversion libraries
+import skl2onnx
+from skl2onnx import convert_sklearn
+from skl2onnx.common.data_types import FloatTensorType, StringTensorType
 
 try:
     # Load datasets
@@ -99,11 +103,26 @@ try:
     print(f"Root Mean Squared Error: {rmse}")
     print(f"R² (coefficient of determination): {r2}")
     
-    # Save the model
-    output_path = "model/saved_model/sklearn_model.joblib"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    joblib.dump(model, output_path,compress=3)
-    print("\n✅ Model trained and saved successfully!")
+    # Convert to ONNX
+    print("\nConverting model to ONNX format...")
+    
+    # Define input feature types for ONNX conversion
+    initial_types = []
+    for feature in categorical_cols:
+        initial_types.append((feature, StringTensorType([None, 1])))
+    for feature in numerical_cols:
+        initial_types.append((feature, FloatTensorType([None, 1])))
+    
+    # Convert the sklearn pipeline to ONNX
+    onnx_model = convert_sklearn(model, initial_types=initial_types)
+    
+    # Save only the ONNX model
+    onnx_output_path = "model/model.onnx"
+    os.makedirs(os.path.dirname(onnx_output_path), exist_ok=True)
+    with open(onnx_output_path, "wb") as f:
+        f.write(onnx_model.SerializeToString())
+    
+    print(f"\n✅ Model trained and saved successfully as ONNX: {onnx_output_path}")
     
 except Exception as e:
     print(f"\n❌ Error: {str(e)}")
