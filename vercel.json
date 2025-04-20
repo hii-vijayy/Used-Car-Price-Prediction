@@ -1,9 +1,4 @@
 {
-    "functions": {
-      "api/predictor.py": {
-        "runtime": "python3.9"
-      }
-    },
     "routes": [
       {
         "src": "/api/predict",

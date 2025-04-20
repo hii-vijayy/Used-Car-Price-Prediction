@@ -1,9 +1,8 @@
-fastapi
-mangum
-numpy
-onnxruntime
-pydantic
-scikit-learn
-uvicorn
-pandas
-joblip
+fastapi==0.110.0
+mangum==0.20.0
+numpy==1.26.4
+onnxruntime==1.17.0
+pydantic==2.6.4
+scikit-learn==1.4.2
+pandas==2.2.2
+joblib==1.4.0
