@@ -17,7 +17,7 @@ const NavBar = () => {
           {/* Logo */}
           <Link to="/" className="navbar-logo">
             <img
-              src="/images/CarValue-Predictor-Logo-Design.png"
+              src="/Users/vijaykumar/Programming/React_JS_Projects/Used-Car-Price-Prediction/frontend/public/CarValue-Predictor-Logo-Design.png"
               alt="CarValue Predictor Logo"
               className="logo-image"
             />

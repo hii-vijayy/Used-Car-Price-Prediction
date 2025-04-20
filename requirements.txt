@@ -1,4 +1,7 @@
 fastapi
-uvicorn
+mangum
+onnxruntime
+numpy
 pydantic
-pyspark
+scikit-learn
+skl2onnx
