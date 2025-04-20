@@ -1,7 +1,5 @@
 fastapi
 mangum
-onnxruntime
 numpy
 pydantic
 scikit-learn
-skl2onnx

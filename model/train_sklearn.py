@@ -102,7 +102,7 @@ try:
     # Save the model
     output_path = "model/saved_model/sklearn_model.joblib"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    joblib.dump(model, output_path)
+    joblib.dump(model, output_path,compress=3)
     print("\n✅ Model trained and saved successfully!")
     
 except Exception as e:
