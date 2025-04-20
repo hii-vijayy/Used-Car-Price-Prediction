@@ -16,11 +16,11 @@ const NavBar = () => {
         <div className="navbar-content">
           {/* Logo */}
           <Link to="/" className="navbar-logo">
-            <img
+            {/* <img
               src="/Users/vijaykumar/Programming/React_JS_Projects/Used-Car-Price-Prediction/frontend/public/CarValue-Predictor-Logo-Design.png"
               alt="CarValue Predictor Logo"
               className="logo-image"
-            />
+            /> */}
           </Link>
 
           {/* Desktop Menu */}

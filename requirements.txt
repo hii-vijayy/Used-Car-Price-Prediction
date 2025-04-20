@@ -3,3 +3,5 @@ mangum
 numpy
 onnxruntime
 pydantic
+scikit-learn
+uvicorn
